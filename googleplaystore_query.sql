@@ -94,11 +94,10 @@ order by sub.total_type desc
 -- Entertainment and Education are the top 2 family-oriented apps within the google store
 ------------------------------------------------
 
-select app, category, reviews, rating,  max(installs) as total_installs
+select app, category, reviews, rating, installs
 from google_stuff 
 where installs = (select max(installs)
 				  from google_stuff)
-group by 1,2,3,4
 order by 3 desc, 5 desc
 -- top 20 most popular apps w/ respect to reviews, ratings, and total installs
 -- facebook stands at the top of the most downloaded app in the google store
@@ -173,5 +172,18 @@ where reviews != 0
 AND installs != 0
 AND category = 'GAME'
 order by 2 desc
--- in some of these games, they could have reviews it and uninstalled the application
--- installs is a running total (Active Installs)
+-- Possibly for some of these games, users could have reviewed and uninstalled the application, resulting in the
+-- 'Active Install' count to decrease
+-- Installs is a running total (Active Installs)
+---------------------------------------------------
+select b.app, sub.category, (b.installs / sub.total_sum) * 100 as perc_install_category
+from (select distinct category, sum(installs) as total_sum
+from google_stuff
+where installs != 0
+group by 1) as sub
+join google_stuff as b
+on sub.category = b.category
+order by 2, 3 desc
+-- (specific app # of install / its category of total install)
+-- finding the "percentage" of a specific app's total install vs total categorical install
+--------------------------------------------------
